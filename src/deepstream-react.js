@@ -1,5 +1,5 @@
 var LOCAL = 'local';
-var dsClient;
+var dsClient = null;
 
 module.exports = {
 	setDeepstreamClient: function( _dsClient ) {
@@ -49,6 +49,10 @@ module.exports = {
 	_createRecord: function() {
 		if( this.dsRecord ) {
 			return;
+		}
+
+		if( dsClient === null ) {
+			throw new Error( 'no deepstream client set. Please call setDeepstreamClient( ds ) before using the deepstream react mixin ');
 		}
 
 		if( typeof this.props.recordName !== 'string' ) {

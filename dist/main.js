@@ -30192,7 +30192,7 @@ function hasOwnProperty(obj, prop) {
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"./support/isBuffer":222,"_process":215,"inherits":214}],224:[function(require,module,exports){
 var LOCAL = 'local';
-var dsClient;
+var dsClient = null;
 
 module.exports = {
 	setDeepstreamClient: function (_dsClient) {
@@ -30244,6 +30244,10 @@ module.exports = {
 			return;
 		}
 
+		if (dsClient === null) {
+			throw new Error('no deepstream client set. Please call setDeepstreamClient( ds ) before using the deepstream react mixin ');
+		}
+
 		if (typeof this.props.recordName !== 'string') {
 			throw new Error('deepstream react mixin requires prop \'recordName\'');
 		}
@@ -30284,12 +30288,11 @@ var TodoItem = React.createClass({
 	},
 
 	render: function () {
-		var classes = this.state.isDone ? 'fa fa-fw fa-check-square-o' : 'fa fa-fw fa-square-o';
 		return React.createElement(
 			'li',
 			null,
 			React.createElement('input', { type: 'text', value: this.state.title, onChange: this.setTitle }),
-			React.createElement('div', { className: classes, onClick: this.toggleDone }),
+			React.createElement('div', { className: this.state.isDone ? 'fa fa-fw fa-check-square-o' : 'fa fa-fw fa-square-o', onClick: this.toggleDone }),
 			React.createElement('div', { className: 'fa fa-close', onClick: this.remove })
 		);
 	}

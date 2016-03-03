@@ -4,18 +4,33 @@
   "description": "",
   "main": "bundle.js",
   "dependencies": {
+
+  },
+  "devDependencies": {
     "babel-preset-react": "^6.5.0",
     "babelify": "^7.2.0",
     "deepstream.io-client-js": "^0.4.0",
+    "jasmine-core": "^2.4.1",
+    "jasmine-node": "^1.14.5",
     "react": "^0.14.7",
     "react-dom": "^0.14.7",
-    "watchify": "^3.7.0"
+    "watchify": "^3.7.0",
+    "browserify": "^13.0.0",
+    "karma": "^0.13.21",
+    "karma-bro": "^0.11.1",
+    "karma-browserify": "^5.0.2",
+    "karma-chrome-launcher": "^0.1.4",
+    "karma-jasmine": "^0.3.7",
+    "karma-react-jsx-preprocessor": "^0.1.1",
+    "react-tools": "^0.13.3",
+    "reactify": "^1.1.1"
   },
-  "devDependencies": {},
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "watchify -t [ babelify --presets [ react ] ] src/main.jsx -o dist/main.js"
+    "start": "browserify ./src/main.jsx -t reactify -o ./dist/main.js",
+    "test": "karma start karma-conf.js",
+    "test:watch": "karma start karma-conf.js --no-single-run",
+    "dev2": "watchify -t [ babelify --presets [ react ] ] src/main.jsx -o dist/main.js"
   },
   "author": "",
-  "license": "ISC"
+  "license": "MIT"
 }

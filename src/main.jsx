@@ -22,11 +22,10 @@ var TodoItem = React.createClass({
 	},
 
 	render: function() {
-		var classes = this.state.isDone ? 'fa fa-fw fa-check-square-o' : 'fa fa-fw fa-square-o';
 		return (
 			<li>
 				<input type="text" value={this.state.title} onChange={this.setTitle} />
-				<div className={classes} onClick={this.toggleDone}></div>
+				<div className={this.state.isDone ? 'fa fa-fw fa-check-square-o' : 'fa fa-fw fa-square-o'} onClick={this.toggleDone}></div>
 				<div className="fa fa-close" onClick={this.remove}></div>
 			</li>
 		)
