@@ -3,27 +3,26 @@
   "version": "1.0.0",
   "description": "",
   "main": "bundle.js",
-  "dependencies": {
-
-  },
+  "dependencies": {},
   "devDependencies": {
     "babel-preset-react": "^6.5.0",
     "babelify": "^7.2.0",
-    "deepstream.io-client-js": "^0.4.0",
+    "browserify": "^13.0.0",
+    "deepstream.io-client-js": "latest",
     "jasmine-core": "^2.4.1",
     "jasmine-node": "^1.14.5",
-    "react": "^0.14.7",
-    "react-dom": "^0.14.7",
-    "watchify": "^3.7.0",
-    "browserify": "^13.0.0",
     "karma": "^0.13.21",
     "karma-bro": "^0.11.1",
     "karma-browserify": "^5.0.2",
     "karma-chrome-launcher": "^0.1.4",
     "karma-jasmine": "^0.3.7",
     "karma-react-jsx-preprocessor": "^0.1.1",
+    "react": "^0.14.7",
+    "react-addons-test-utils": "^0.14.7",
+    "react-dom": "^0.14.7",
     "react-tools": "^0.13.3",
-    "reactify": "^1.1.1"
+    "reactify": "^1.1.1",
+    "watchify": "^3.7.0"
   },
   "scripts": {
     "start": "browserify ./src/main.jsx -t reactify -o ./dist/main.js",

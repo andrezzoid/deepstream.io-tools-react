@@ -17,7 +17,7 @@ var TodoItem = React.createClass({
 		this.dsRecord.delete();
 		var todos = ds.record.getRecord( 'todos' );
 		var items = todos.get( 'items' );
-		items.splice( items.indexOf( this.props.recordName ), 1 );
+		items.splice( items.indexOf( this.props.dsRecord ), 1 );
 		todos.set( 'items', items );
 	},
 
@@ -65,7 +65,7 @@ var TodoApp = React.createClass({
 	},
 	render: function() {
 		var todos = this.state.items.map(function( item ){
-			return <TodoItem key={item} recordName={item} />
+			return <TodoItem key={item} dsRecord={item} />
 		});
 		return (
 			<div>
@@ -82,7 +82,7 @@ var TodoApp = React.createClass({
 });
 
 ds = deepstream( 'localhost:6020' ).login({}, function(){
-	ReactDOM.render(<TodoApp recordName="todos" />, document.getElementById( 'example' ));
+	ReactDOM.render(<TodoApp dsRecord="todos" />, document.getElementById( 'example' ));
 });
 
 DeepstreamMixin.setDeepstreamClient( ds );

@@ -41,8 +41,8 @@ module.exports = {
 
 		return clonedState;
 	},
-	_onRecordReady: function() {
-		if( this.dsRecord && Object.keys( this.dsRecord.get() ).length === 0 && this.state ) {
+	_setInitialState: function() {
+		if( this.dsRecord && this.dsRecord.isReady && Object.keys( this.dsRecord.get() ).length === 0 && this.state ) {
 			this.dsRecord.set( this.state );
 		}
 	},
@@ -52,19 +52,20 @@ module.exports = {
 		}
 
 		if( dsClient === null ) {
-			throw new Error( 'no deepstream client set. Please call setDeepstreamClient( ds ) before using the deepstream react mixin ');
+			throw new Error( 'no deepstream client set. Please call setDeepstreamClient( ds ) before using the deepstream react mixin' );
 		}
 
-		if( typeof this.props.recordName !== 'string' ) {
-			throw new Error( 'deepstream react mixin requires prop \'recordName\'' );
+		if( typeof this.props.dsRecord !== 'string' ) {
+			throw new Error( 'deepstream react mixin requires prop \'dsRecord\'' );
 		}
 
-		this.dsRecord = dsClient.record.getRecord( this.props.recordName );
+		this.dsRecord = dsClient.record.getRecord( this.props.dsRecord );
 		this.dsRecord.subscribe( this._setState );
+
 		if( this.dsRecord.isReady ) {
-			this._onRecordReady();
+			setTimeout( this._setInitialState, 0 );
 		} else {
-			this.dsRecord.once( 'ready', this._onRecordReady );
+			this.dsRecord.once( 'ready', this._setInitialState );
 		}
 	}
 };
