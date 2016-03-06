@@ -5068,11 +5068,12 @@ Connection.prototype.close = function() {
  * Creates the endpoint to connect to using the url deepstream
  * was initialised with. If running in node automatically uses TCP
  * for better performance
+ *
  * @private
  * @returns {void}
  */
 Connection.prototype._createEndpoint = function() {
-	if( utils.isNode() ) {
+	if( utils.isNode ) {
 		this._endpoint = new TcpConnection( this._url );
 	} else {
 		this._endpoint = engineIoClient( this._url, this._options );
@@ -6492,7 +6493,7 @@ var Record = function( name, recordOptions, connection, options, client ) {
 	this._oldPathValues = null;
 	this._eventEmitter = new EventEmitter();
 	this._queuedMethodCalls = [];
-	
+
 	this._resubscribeNotifier = new ResubscribeNotifier( this._client, this._sendRead.bind( this ) );
 	this._readAckTimeout = setTimeout( this._onTimeout.bind( this, C.EVENT.ACK_TIMEOUT ), this._options.recordReadAckTimeout );
 	this._readTimeout = setTimeout( this._onTimeout.bind( this, C.EVENT.RESPONSE_TIMEOUT ), this._options.recordReadTimeout );
@@ -6524,7 +6525,7 @@ Record.prototype.get = function( path ) {
 		value = this._$data;
 	}
 
-	return utils.shallowCopy( value );
+	return utils.deepCopy( value );
 };
 
 /**
@@ -6567,17 +6568,17 @@ Record.prototype.set = function( pathOrData, data ) {
 	if( arguments.length === 1 ) {
 		this._$data = pathOrData;
 		this._connection.sendMsg( C.TOPIC.RECORD, C.ACTIONS.UPDATE, [
-			this.name, 
-			this._version, 
-			this._$data 
+			this.name,
+			this._version,
+			this._$data
 		]);
 	} else {
 		this._getPath( pathOrData ).setValue( data );
-		this._connection.sendMsg( C.TOPIC.RECORD, C.ACTIONS.PATCH, [ 
-			this.name, 
-			this._version, 
-			pathOrData, 
-			messageBuilder.typed( data ) 
+		this._connection.sendMsg( C.TOPIC.RECORD, C.ACTIONS.PATCH, [
+			this.name,
+			this._version,
+			pathOrData,
+			messageBuilder.typed( data )
 		]);
 	}
 
@@ -6665,7 +6666,7 @@ Record.prototype.discard = function() {
 
 /**
  * Deletes the record on the server.
- * 
+ *
  * @public
  * @returns {void}
  */
@@ -6709,7 +6710,7 @@ Record.prototype._$onMessage = function( message ) {
 			clearTimeout( this._readTimeout );
 			this._onRead( message );
 		} else {
-			this._applyUpdate( message, this._client );	
+			this._applyUpdate( message, this._client );
 		}
 	}
 	else if( message.action === C.ACTIONS.ACK ) {
@@ -6730,7 +6731,7 @@ Record.prototype._$onMessage = function( message ) {
  * Instead it should find a more sophisticated merge strategy
  *
  * @private
- * @returns {void} 
+ * @returns {void}
  */
 Record.prototype._recoverRecord = function( message ) {
 	message.processedError = true;
@@ -6757,7 +6758,7 @@ Record.prototype._processAckMessage = function( message ) {
 		this.emit( 'delete' );
 		this._destroy();
 	}
-	
+
 	else if( acknowledgedAction === C.ACTIONS.UNSUBSCRIBE ) {
 		this.emit( 'discard' );
 		this._destroy();
@@ -6796,7 +6797,7 @@ Record.prototype._applyUpdate = function( message ) {
 
 /**
  * Callback for incoming read messages
- * 
+ *
  * @param   {Object} message parsed and validated deepstream message
  *
  * @private
@@ -6829,14 +6830,14 @@ Record.prototype._setReady = function() {
 /**
  * Sends the read message, either initially at record
  * creation or after a lost connection has been re-established
- * 
+ *
  * @private
  * @returns {void}
  */
  Record.prototype._sendRead = function() {
  	this._connection.sendMsg( C.TOPIC.RECORD, C.ACTIONS.CREATEORREAD, [ this.name ] );
  };
- 
+
 
 /**
  * Returns an instance of JsonPath for a specific path. Creates the instance if it doesn't
@@ -6896,7 +6897,7 @@ Record.prototype._completeChange = function() {
 	}
 
 	this._oldValue = null;
-	
+
 	if( this._oldPathValues === null ) {
 		return;
 	}
@@ -6990,7 +6991,7 @@ Record.prototype._onTimeout = function( timeoutType ) {
 /**
  * Destroys the record and nulls all
  * its dependencies
- * 
+ *
  * @private
  * @returns {void}
  */
@@ -7817,93 +7818,117 @@ ResubscribeNotifier.prototype.destroy = function() {
 module.exports = ResubscribeNotifier;
 },{"../constants/constants":32}],50:[function(require,module,exports){
 (function (process){
-exports.isNode = function() {
-	return typeof process !== 'undefined' && process.toString() === '[object process]';
-};
+/**
+ * A regular expression that matches whitespace on either side, but
+ * not in the center of a string
+ *
+ * @type {RegExp}
+ */
+var TRIM_REGULAR_EXPRESSION = /^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g;
 
+/**
+ * Used in typeof comparisons
+ *
+ * @type {String}
+ */
+var OBJECT = 'object';
+
+/**
+ * True if environment is node, false if it's a browser
+ * This seems somewhat inelegant, if anyone knows a better solution,
+ * let's change this (must identify browserify's pseudo node implementation though)
+ *
+ * @public
+ * @type {Boolean}
+ */
+exports.isNode = typeof process !== 'undefined' && process.toString() === '[object process]';
+
+/**
+ * Provides as soon as possible async execution in a cross
+ * platform way
+ *
+ * @param   {Function} fn the function to be executed in an asynchronous fashion
+ *
+ * @public
+ * @returns {void}
+ */
 exports.nextTick = function( fn ) {
-	if( exports.isNode() ) {
+	if( exports.isNode ) {
 		process.nextTick( fn );
 	} else {
 		setTimeout( fn, 0 );
 	}
 };
 
+/**
+ * Removes whitespace from the beginning and end of a string
+ *
+ * @param   {String} inputString
+ *
+ * @public
+ * @returns {String} trimmedString
+ */
 exports.trim = function( inputString ) {
 	if( inputString.trim ) {
 		return inputString.trim();
 	} else {
-		return inputString.replace( trimRegExp, '' );
+		return inputString.replace( TRIM_REGULAR_EXPRESSION, '' );
 	}
 };
 
-var trimRegExp = /^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g;
-
-var OBJECT = 'object';
-
-exports.deepEquals = function( objA, objB ) {
-	var isEqual = true, 
-		next;
-
-	if( objA === null || objB === null ) {
-		return objA === objB;
-	}
-
+/**
+ * Compares two objects for deep (recoursive) equality
+ *
+ * This used to be a significantly more complex custom implementation,
+ * but JSON.stringify has gotten so fast that it now outperforms the custom
+ * way by a factor of 1.5 to 3.
+ *
+ * In IE11 / Edge the custom implementation is still slightly faster, but for
+ * consistencies sake and the upsides of leaving edge-case handling to the native
+ * browser / node implementation we'll go for JSON.stringify from here on.
+ *
+ * Please find performance test results here
+ *
+ * http://jsperf.com/deep-equals-code-vs-json
+ *
+ * @param   {Mixed} objA
+ * @param   {Mixed} objB
+ *
+ * @public
+ * @returns {Boolean} isEqual
+ */
+exports.deepEquals= function( objA, objB ) {
 	if( typeof objA !== OBJECT || typeof objB !== OBJECT ) {
 		return objA === objB;
+	} else {
+		return JSON.stringify( objA ) === JSON.stringify( objB );
 	}
-
-	next = function( _objA, _objB ) {
-		if( _objA === null || _objB === null || typeof _objA !== OBJECT || typeof _objB !== OBJECT ) {
-			isEqual = objA === objB;
-			return;
-		}
-
-		for( var key in _objA ) {
-			if( typeof _objA[ key ] === OBJECT ) {
-				next( _objA[ key ], _objB[ key ] );
-			} else if( _objA[ key ] !== _objB[ key ] ) {
-				isEqual = false;
-				return;
-			}
-		}
-	};
-
-	next( objA, objB );
-	
-	if( isEqual ) {
-		next( objB, objA );
-	}
-	
-	return isEqual;
 };
 
-exports.shallowCopy = function( obj ) {
-	if( obj === null ) {
-		return null;
-	}
-
-	if( typeof obj !== OBJECT ) {
+/**
+ * Similar to deepEquals above, tests have shown that JSON stringify outperforms any attempt of
+ * a code based implementation by 50% - 100% whilst also handling edge-cases and keeping implementation
+ * complexity low.
+ *
+ * If ES6/7 ever decides to implement deep copying natively (what happened to Object.clone? that was briefly
+ * a thing...), let's switch it for the native implementation. For now though, even Object.assign({}, obj) only
+ * provides a shallow copy.
+ *
+ * Please find performance test results backing these statements here:
+ *
+ * http://jsperf.com/object-deep-copy-assign
+ *
+ * @param   {Mixed} obj the object that should be cloned
+ *
+ * @public
+ * @returns {Mixed} clone
+ */
+exports.deepCopy = function( obj ) {
+	if( typeof obj === OBJECT ) {
+		return JSON.parse( JSON.stringify( obj ) );
+	} else {
 		return obj;
 	}
-
-	var copy, i;
-
-	if( obj instanceof Array ) {
-		copy = [];
-
-		for( i = 0; i < obj.length; i++ ) {
-			copy[ i ] = obj[ i ];
-		}
-	} else {
-		copy = {};
-
-		for( i in obj ) {
-			copy[ i ] = obj[ i ];
-		}
-	}
-
-	return copy;
 };
 }).call(this,require('_process'))
 },{"_process":215}],51:[function(require,module,exports){
@@ -30191,73 +30216,204 @@ function hasOwnProperty(obj, prop) {
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"./support/isBuffer":222,"_process":215,"inherits":214}],224:[function(require,module,exports){
+/**
+ * deepstream-react
+ *
+ * this is a mixin that bi-directionally syncs the state of a
+ * react-component with a deepstream-record and propagates any change accross
+ * all connected clients
+ *
+ * @copyright 2016 deepstreamHub GmbH i. Gr.
+ *
+ * @license MIT
+ * @author Wolfram Hempel <wolfram.hempel@deepstreamhub.com>
+ */
+
+/**
+ * Everything under the local namespace within a component's state
+ * will be excluded from being synced
+ *
+ * @constant
+ * @private
+ * @type {String}
+ */
 var LOCAL = 'local';
+
+/**
+ * The client instance for all react-deepstream mixins
+ *
+ * @private
+ * @type {DeepstreamClient}
+ */
 var dsClient = null;
 
 module.exports = {
-	setDeepstreamClient: function (_dsClient) {
+
+	/**
+	 * This method must be called with a connected deepstream client instance
+	 * before the mixin can be used. It is a static method on the constructor,
+	 * so calling it will set the client for all future component's using this mixin
+	 *
+	 * @example
+	 *
+	 * var ReactDeepstream = require( 'react-deepstream' );
+	 *
+	 * ds = deepstream( 'localhost:6020' ).login({}, function(){
+	 *		ReactDOM.render(<TodoApp dsRecord="todos" />, document.getElementById( 'example' ));
+	 * });
+	 *
+	 * ReactDeepstream.setDeepstreamClient( ds );
+	 *
+	 * @static
+	 * @param {DeepstreamClient} _dsClient
+	 *
+	 * @returns {void}
+	 */
+	setDeepstreamClient: function( _dsClient ) {
 		dsClient = _dsClient;
 	},
-	componentWillMount: function () {
+
+	/**
+	 * React lifecycle method. The associated record is created either in componentWillMount
+	 * or getInitialState, depending on what's called first.
+	 *
+	 * @interface
+	 * @returns {void}
+	 */
+	componentWillMount: function() {
 		this._createRecord();
 	},
-	getInitialState: function () {
+
+	/**
+	 * React lifecycle method. If the record is already loaded at this point and has a state
+	 * it will be returned. Can be overwritten by implementing component
+	 *
+	 * @interface
+	 * @returns {Object} initialState
+	 */
+	getInitialState: function() {
 		this._createRecord();
 		return this.dsRecord.get();
 	},
-	componentWillUnmount: function () {
-		setTimeout(this._destroy, 0);
+
+	/**
+	 * React lifecycle method. Discards the record and releases associated bindings
+	 * after react has completed the unmounting
+	 *
+	 * @interface
+	 * @returns {void}
+	 */
+	componentWillUnmount: function() {
+		setTimeout( this._destroy, 0 );
 	},
-	componentWillUpdate: function (nextProps, nextState) {
-		this.dsRecord.set(this._cloneState(nextState));
+
+	/**
+	 * React lifecycle method. Marks a change to setState.
+	 *
+	 * @param   {[type]} nextProps [description]
+	 * @param   {[type]} nextState [description]
+	 *
+	 * @returns {[type]}
+	 */
+	componentWillUpdate: function( nextProps, nextState ) {
+		this.dsRecord.set( this._cloneState( nextState ) );
 	},
-	_destroy: function () {
-		if (this.dsRecord.isDestroyed === false) {
-			this.dsRecord.unsubscribe(this._setState);
+
+	/**
+	 * Removes all subscriptions and discards the record. This does not
+	 * delete the record, but tells the deepstreamServer that we're no longer
+	 * interested in updates.
+	 *
+	 * @private
+	 * @returns {void}
+	 */
+	_destroy: function() {
+		if( this.dsRecord.isDestroyed === false ) {
+			this.dsRecord.unsubscribe( this._setState );
 			this.dsRecord.discard();
 		}
 
 		delete this.dsRecord;
 	},
-	_setState: function (state) {
-		this.setState(this._cloneState(state));
-	},
-	_cloneState: function (state) {
-		var key,
-		    clonedState = {};
 
-		for (key in state) {
-			if (key !== LOCAL) {
-				clonedState[key] = state[key];
+	/**
+	 * Set's the component's state to a shallow copy of the provided
+	 * state, minus the local namespace
+	 *
+	 * @param {Object} state a serializable component state
+	 *
+	 * @private
+	 * @returns {void}
+	 */
+	_setState: function( state ) {
+		this.setState( this._cloneState( state ) );
+	},
+
+	/**
+	 * Creates a shallow copy of the state and omits the local namespace
+	 *
+	 * @param {Object} state a serializable component state
+	 *
+	 * @private
+	 * @returns {Object} clonedState a serializable component state
+	 */
+	_cloneState: function( state ) {
+		var key,
+			clonedState = {};
+
+		for( key in state ) {
+			if( key !== LOCAL ) {
+				clonedState[ key ] = state[ key ];
 			}
 		}
 
 		return clonedState;
 	},
-	_onRecordReady: function () {
-		if (this.dsRecord && Object.keys(this.dsRecord.get()).length === 0 && this.state) {
-			this.dsRecord.set(this.state);
+
+	/**
+	 * Set's the record's initial dataset, but only if the record is present, is empty and
+	 * the state is populated. This would most likely be the case for new react components that
+	 * expose a getInitialState method
+	 *
+	 * @private
+	 * @returns {void}
+	 */
+	_setInitialState: function() {
+		if( this.dsRecord && this.dsRecord.isReady && Object.keys( this.dsRecord.get() ).length === 0 && this.state ) {
+			this.dsRecord.set( this.state );
 		}
 	},
-	_createRecord: function () {
-		if (this.dsRecord) {
+
+	/**
+	 * Creates / Retrieves the record this component's state is synced with. This method is called either by getInitialState
+	 * or componentWillMount - whatever comes first
+	 *
+	 * @private
+	 * @returns {void}
+	 */
+	_createRecord: function() {
+		if( this.dsRecord ) {
 			return;
 		}
 
-		if (dsClient === null) {
-			throw new Error('no deepstream client set. Please call setDeepstreamClient( ds ) before using the deepstream react mixin ');
+		if( dsClient === null ) {
+			throw new Error( 'no deepstream client set. Please call setDeepstreamClient( ds ) before using the deepstream react mixin' );
 		}
 
-		if (typeof this.props.recordName !== 'string') {
-			throw new Error('deepstream react mixin requires prop \'recordName\'');
+		if( typeof this.props.dsRecord !== 'string' ) {
+			throw new Error( 'deepstream react mixin requires prop \'dsRecord\'' );
 		}
 
-		this.dsRecord = dsClient.record.getRecord(this.props.recordName);
-		this.dsRecord.subscribe(this._setState);
-		if (this.dsRecord.isReady) {
-			this._onRecordReady();
+		this.dsRecord = dsClient.record.getRecord( this.props.dsRecord );
+		this.dsRecord.subscribe( this._setState );
+
+		/*
+		 * We can't use record.whenReady here since react complains about its internal usage of `bind`
+		 */
+		if( this.dsRecord.isReady ) {
+			setTimeout( this._setInitialState, 0 );
 		} else {
-			this.dsRecord.once('ready', this._onRecordReady);
+			this.dsRecord.once( 'ready', this._setInitialState );
 		}
 	}
 };
@@ -30266,101 +30422,90 @@ module.exports = {
 
 var React = require('react');
 var ReactDOM = require('react-dom');
-var deepstream = require('deepstream.io-client-js');
-var DeepstreamMixin = require('./deepstream-react');
+var deepstream = require( 'deepstream.io-client-js' );
+var DeepstreamMixin = require( '../../src/deepstream-react' );
 
-var TodoItem = React.createClass({
-	displayName: 'TodoItem',
 
-	mixins: [DeepstreamMixin],
-	toggleDone: function (e) {
+var TodoItem = React.createClass({displayName: "TodoItem",
+	mixins: [ DeepstreamMixin ],
+	toggleDone: function( e ) {
 		this.setState({ isDone: !this.state.isDone });
 	},
-	setTitle: function (e) {
+	setTitle: function( e ) {
 		this.setState({ title: e.target.value });
 	},
-	remove: function () {
+	remove: function() {
 		this.dsRecord.delete();
-		var todos = ds.record.getRecord('todos');
-		var items = todos.get('items');
-		items.splice(items.indexOf(this.props.recordName), 1);
-		todos.set('items', items);
+		var todos = ds.record.getRecord( 'todos' );
+		var items = todos.get( 'items' );
+		items.splice( items.indexOf( this.props.dsRecord ), 1 );
+		todos.set( 'items', items );
 	},
 
-	render: function () {
-		return React.createElement(
-			'li',
-			null,
-			React.createElement('input', { type: 'text', value: this.state.title, onChange: this.setTitle }),
-			React.createElement('div', { className: this.state.isDone ? 'fa fa-fw fa-check-square-o' : 'fa fa-fw fa-square-o', onClick: this.toggleDone }),
-			React.createElement('div', { className: 'fa fa-close', onClick: this.remove })
-		);
+	render: function() {
+		return (
+			React.createElement("li", null, 
+				React.createElement("input", {type: "text", value: this.state.title, onChange: this.setTitle}), 
+				React.createElement("div", {className: this.state.isDone ? 'fa fa-fw fa-check-square-o' : 'fa fa-fw fa-square-o', onClick: this.toggleDone}), 
+				React.createElement("div", {className: "fa fa-close", onClick: this.remove})
+			)
+		)
 	}
 });
 
-var TodoApp = React.createClass({
-	displayName: 'TodoApp',
-
-	mixins: [DeepstreamMixin],
-	getInitialState: function () {
+var TodoApp = React.createClass({displayName: "TodoApp",
+	mixins: [ DeepstreamMixin ],
+	getInitialState: function() {
 		return {
 			local: {
 				text: ''
 			},
 			items: []
-		};
+		}
 	},
-	handleSubmit: function (e) {
+	handleSubmit: function(e) {
 		e.preventDefault();
 		var id = 'todo/' + ds.getUid();
 
-		ds.record.getRecord(id).set({
+		ds.record.getRecord( id ).set({
 			title: this.state.local.text,
 			isDone: false
 		});
 
 		this.setState({
 			local: { text: '' },
-			items: this.state.items.concat([id])
+			items: this.state.items.concat([ id ])
 		});
 	},
-	onInputUpdate: function (e) {
+	onInputUpdate: function(e){
 		this.setState({
 			local: {
 				text: e.target.value
 			}
 		});
 	},
-	render: function () {
-		var todos = this.state.items.map(function (item) {
-			return React.createElement(TodoItem, { key: item, recordName: item });
+	render: function() {
+		var todos = this.state.items.map(function( item ){
+			return React.createElement(TodoItem, {key: item, dsRecord: item})
 		});
-		return React.createElement(
-			'div',
-			null,
-			React.createElement(
-				'ul',
-				null,
-				todos
-			),
-			React.createElement(
-				'form',
-				{ onSubmit: this.handleSubmit },
-				React.createElement('input', { value: this.state.local.text, onChange: this.onInputUpdate }),
-				React.createElement(
-					'button',
-					null,
-					'Add'
+		return (
+			React.createElement("div", null, 
+				React.createElement("ul", null, 
+					todos
+				), 
+				React.createElement("form", {onSubmit: this.handleSubmit}, 
+					React.createElement("input", {value: this.state.local.text, onChange: this.onInputUpdate}), 
+					React.createElement("button", null, "Add")
 				)
 			)
 		);
 	}
 });
 
-ds = deepstream('localhost:6020').login({}, function () {
-	ReactDOM.render(React.createElement(TodoApp, { recordName: 'todos' }), document.getElementById('example'));
+ds = deepstream( 'localhost:6020' ).login({}, function(){
+	ReactDOM.render(React.createElement(TodoApp, {dsRecord: "todos"}), document.getElementById( 'example' ));
 });
 
-DeepstreamMixin.setDeepstreamClient(ds);
+DeepstreamMixin.setDeepstreamClient( ds );
 
-},{"./deepstream-react":224,"deepstream.io-client-js":31,"react":210,"react-dom":54}]},{},[225]);
+},{"../../src/deepstream-react":224,"deepstream.io-client-js":31,"react":210,"react-dom":54}]},{},[225]);

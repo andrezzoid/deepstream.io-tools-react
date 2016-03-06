@@ -2,7 +2,7 @@
 var React = require('react');
 var ReactDOM = require('react-dom');
 var deepstream = require( 'deepstream.io-client-js' );
-var DeepstreamMixin = require( './deepstream-react' );
+var DeepstreamMixin = require( '../../src/deepstream-react' );
 
 
 var TodoItem = React.createClass({

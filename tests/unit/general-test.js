@@ -10,6 +10,7 @@ describe( 'creates a component with deepstream-react mixin', function(){
 	var testDomContainer = document.createElement( 'div' );
 	var remoteInput;
 	var localInput;
+	var nestedInput;
 	var testRecord;
 	var recordName = 'text/' + Math.random();
 
@@ -49,8 +50,10 @@ describe( 'creates a component with deepstream-react mixin', function(){
 		var inputs = testDomContainer.getElementsByTagName( 'input' );
 		remoteInput = inputs[ 0 ];
 		localInput = inputs[ 1 ];
+		nestedInput = inputs[ 2 ];
 		expect( remoteInput.value ).toBe( 'initial-remote' );
 		expect( localInput.value ).toBe( 'initial-local' );
+		expect( nestedInput.value ).toBe( 'initial-nested' );
 		setTimeout( done, 300 );
 	});
 
@@ -65,7 +68,8 @@ describe( 'creates a component with deepstream-react mixin', function(){
 		ReactTestUtils.Simulate.change( remoteInput );
 		setTimeout(function(){
 			expect( testRecord.get() ).toEqual({
-				remoteVal: 'remote-change-1'
+				remoteVal: 'remote-change-1',
+				nested: { nestedVal: 'initial-nested' }
 			});
 			done();
 		}, 200 );
@@ -76,7 +80,8 @@ describe( 'creates a component with deepstream-react mixin', function(){
 		ReactTestUtils.Simulate.change( localInput );
 		setTimeout(function(){
 			expect( testRecord.get() ).toEqual({
-				remoteVal: 'remote-change-1'
+				remoteVal: 'remote-change-1',
+				nested: { nestedVal: 'initial-nested' }
 			});
 			done();
 		}, 200 );
@@ -87,7 +92,20 @@ describe( 'creates a component with deepstream-react mixin', function(){
 		ReactTestUtils.Simulate.change( remoteInput );
 		setTimeout(function(){
 			expect( testRecord.get() ).toEqual({
-				remoteVal: 'remote-change-2'
+				remoteVal: 'remote-change-2',
+				nested: { nestedVal: 'initial-nested' }
+			});
+			done();
+		}, 200 );
+	});
+
+	it( 'updates a nested value', function( done ){
+		nestedInput.value = 'nested-change-1';
+		ReactTestUtils.Simulate.change( nestedInput );
+		setTimeout(function(){
+			expect( testRecord.get() ).toEqual({
+				remoteVal: 'remote-change-2',
+				nested: { nestedVal: 'nested-change-1' }
 			});
 			done();
 		}, 200 );
@@ -101,10 +119,19 @@ describe( 'creates a component with deepstream-react mixin', function(){
 		}, 200 );
 	});
 
+	it( 'renders incoming changes to nested values', function( done ){
+		testRecord.set( 'nested.nestedVal', 'nested-change-2' );
+		setTimeout(function(){
+			expect( nestedInput.value ).toBe( 'nested-change-2' );
+			done();
+		}, 200 );
+	});
+
+
 	it( 'destroys the component', function( done ){
 		expect( testRecord.usages ).toBe( 2 );
 		expect( testDomContainer.childElementCount ).toBe( 1 );
-		React.unmountComponentAtNode( testDomContainer );
+		ReactDOM.unmountComponentAtNode( testDomContainer );
 		setTimeout(function(){
 			expect( testDomContainer.childElementCount ).toBe( 0 );
 			expect( testRecord.usages ).toBe( 1 );

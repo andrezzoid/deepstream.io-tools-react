@@ -1,14 +1,16 @@
 {
   "name": "react-test",
   "version": "1.0.0",
-  "description": "",
-  "main": "bundle.js",
+  "description": "A react mixin that syncs a component's state with a deepstream record",
+  "main": "src/deepstream-react.js",
   "dependencies": {},
   "devDependencies": {
     "babel-preset-react": "^6.5.0",
     "babelify": "^7.2.0",
     "browserify": "^13.0.0",
     "deepstream.io-client-js": "latest",
+    "grunt": "^0.4.5",
+    "grunt-release": "^0.13.0",
     "jasmine-core": "^2.4.1",
     "jasmine-node": "^1.14.5",
     "karma": "^0.13.21",
@@ -24,12 +26,15 @@
     "reactify": "^1.1.1",
     "watchify": "^3.7.0"
   },
-  "scripts": {
-    "start": "browserify ./src/main.jsx -t reactify -o ./dist/main.js",
-    "test": "karma start karma-conf.js",
-    "test:watch": "karma start karma-conf.js --no-single-run",
-    "dev2": "watchify -t [ babelify --presets [ react ] ] src/main.jsx -o dist/main.js"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/deepstreamIO/deepstream.io-tools-react.git"
   },
-  "author": "",
+  "scripts": {
+    "build-test-app": "watchify ./test-app/js/main.jsx -t reactify -o ./test-app/dist/main.js",
+    "test": "karma start karma-conf.js",
+    "test:watch": "karma start karma-conf.js --no-single-run"
+  },
+  "author": "Wolfram Hempel<wolfram.hempel@deepstreamhub.com>",
   "license": "MIT"
 }
