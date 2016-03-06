@@ -1,6 +1,6 @@
 {
   "name": "deepstream.io-tools-react",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A react mixin that syncs a component's state with a deepstream record",
   "main": "src/deepstream-react.js",
   "dependencies": {},
