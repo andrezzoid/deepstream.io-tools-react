@@ -3,8 +3,6 @@ module.exports = function( grunt ) {
 		pkg: grunt.file.readJSON( 'package.json' ),
 		release: {
 			options: {
-				beforeBump: [ 'build' ],
-				additionalFiles: [ 'bower.json' ],
 				github: {
 					repo: 'deepstreamIO/deepstream.io-client-js',
 					usernameVar: 'GITHUB_USERNAME',
