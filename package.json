@@ -35,6 +35,6 @@
     "test": "karma start karma-conf.js",
     "test:watch": "karma start karma-conf.js --no-single-run"
   },
-  "author": "Wolfram Hempel<wolfram.hempel@deepstreamhub.com>",
+  "author": "deepstreamHub GmbH",
   "license": "MIT"
 }
