@@ -1,4 +1,6 @@
 # deepstream.io-tools-react
+
+[![Greenkeeper badge](https://badges.greenkeeper.io/deepstreamIO/deepstream.io-tools-react.svg)](https://greenkeeper.io/)
 A react mixin that syncs a component's state with a deepstream record
 
 
